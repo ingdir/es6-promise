@@ -81,6 +81,22 @@ function initiateResolution(resolverFn, resolve, reject) {
   }
 }
 
+// Handle Promise-like objects and
+// capture their .then method reference
+function getThen(value) {
+  let then;
+
+  if (value) {
+    then = value.then
+  }
+
+  if (typeof then === 'function') {
+    return then;
+  }
+
+  return null;
+}
+
 function runAnyOnce(...fns) {
   let called = false;
 
