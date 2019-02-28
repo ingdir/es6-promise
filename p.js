@@ -6,18 +6,36 @@ class P {
   constructor(resolverFn) {
     this._state = PENDING;
     this._value = undefined;
+    // we will store handlers added with .then() here
+    // and will run them as soon as our promise settles
+    this._handlersQueue = [];
 
     const resolve = (result) => {
       this._state = FULFILLED;
       this._value = result;
+      this._handlersQueue.forEach(handlers => runOrQueueHandlers.apply(this, handlers));
     }
 
     const reject = (reason) => {
       this._state = REJECTED;
       this._value = reason;
+      this._handlersQueue.forEach(handlers => runOrQueueHandlers.apply(this, handlers));
     }
 
     initiateResolution(resolverFn, resolve, reject);
+  }
+}
+
+// if not settled, archive the handlers.
+// if settled, run the handler that corresponds to the state.
+function runOrQueueHandlers(onFulfilled, onRejected) {
+  switch (this._state) {
+    case PENDING:
+      return this._handlersQueue.push([onFulfilled, onRejected]);
+    case FULFILLED:
+      return onFulfilled(this._value);
+    case REJECTED:
+      return onRejected(this._value);
   }
 }
 
