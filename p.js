@@ -43,8 +43,7 @@ function runAnyOnce(...fns) {
 }
 
 var p = new P((resolve, reject) => {
-  resolve(42);
-  resolve(100500);  // should be ignored
+  setTimeout(() => resolve(42))
 });
 
 console.log(p);
