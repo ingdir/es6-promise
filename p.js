@@ -146,3 +146,24 @@ var p3 = new P((resolve, reject) => {
 p3.then(
   val => console.log('p3 resolved with', val)
 );
+
+var p4 = new P((resolve, reject) => {
+  setTimeout(() => {
+    resolve(Promise.resolve(Promise.resolve(42)));
+    // these should be ignored!
+    resolve(4200);
+    reject(100500);
+    reject('blah');
+  }, 100);
+});
+
+p4
+  .then(100500)
+  .then(69, 99)
+  .then(console.log.bind(console, '1st gen'))
+  .then(console.log.bind(console, '2st gen'))
+  .then(() => Promise.reject(100500))
+  .then(console.log.bind(console, '3nd gen'), console.log.bind(console, 'error'));
+
+console.log('Promise obj 1:', p);
+console.log('Promise obj 2:', p2);
