@@ -22,20 +22,36 @@ class P {
 }
 
 function initiateResolution(resolverFn, resolve, reject) {
+  const [resolveOnce, rejectOnce] = runAnyOnce(resolve, reject);
+
   try {
-    resolverFn(resolve, reject);
+    resolverFn(resolveOnce, rejectOnce);
   } catch (e) {
-    reject(e);
+    rejectOnce(e);
   }
+}
+
+function runAnyOnce(...fns) {
+  let called = false;
+
+  return fns.map(f => function() {
+    if (!called) {
+      called = true;
+      return f.apply(null, arguments);
+    }
+  });
 }
 
 var p = new P((resolve, reject) => {
   resolve(42);
+  resolve(100500);  // should be ignored
 });
 
 console.log(p);
 
 var p2 = new P((resolve, reject) => {
+  reject('good rejection reason');
+  // error should be ignored
   throw new Error('damn!');
 });
 
