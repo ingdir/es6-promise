@@ -24,6 +24,38 @@ class P {
 
     initiateResolution(resolverFn, resolve, reject);
   }
+
+  then(onFulfilled, onRejected) {
+    if (typeof onFulfilled !== 'function') {
+      onFulfilled = x => x;
+    }
+
+    if (typeof onRejected !== 'function') {
+      onRejected = e => { throw e };
+    }
+
+    return new P((resolve, reject) => {
+      setTimeout(() => {
+        initiateResolution(
+          runOrQueueHandlers.bind(this),
+          result => {
+            try {
+              return resolve(onFulfilled(result));
+            } catch (e) {
+              return reject(e);
+            }
+          },
+          reason => {
+            try {
+              return resolve(onRejected(reason));
+            } catch (e) {
+              return reject(e);
+            }
+          }
+        );
+      }, 0);
+    });
+  }
 }
 
 // if not settled, archive the handlers.
@@ -61,10 +93,10 @@ function runAnyOnce(...fns) {
 }
 
 var p = new P((resolve, reject) => {
-  setTimeout(() => resolve(42))
+  setTimeout(() => resolve(42), 1000);
 });
 
-console.log(p);
+p.then(() => 100500).then(console.log);
 
 var p2 = new P((resolve, reject) => {
   reject('good rejection reason');
@@ -72,4 +104,4 @@ var p2 = new P((resolve, reject) => {
   throw new Error('damn!');
 });
 
-console.log(p2);
+p2.then(null, console.log);
