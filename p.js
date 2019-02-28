@@ -96,12 +96,25 @@ var p = new P((resolve, reject) => {
   setTimeout(() => resolve(42), 1000);
 });
 
-p.then(() => 100500).then(console.log);
+p.then(() => 100500).then(() => Promise.resolve(42))
+  .then(
+    val => console.log('p1 resolved with', val)
+  );
 
 var p2 = new P((resolve, reject) => {
-  reject('good rejection reason');
-  // error should be ignored
+  resolve(42);
   throw new Error('damn!');
 });
 
-p2.then(null, console.log);
+p2.then(
+  val => console.log('p2 resolved with', val),
+  err => console.log('p2 rejected with', err)
+)
+
+var p3 = new P((resolve, reject) => {
+  resolve(Promise.resolve('the truth is out there'));
+});
+
+p3.then(
+  val => console.log('p3 resolved with', val)
+);
