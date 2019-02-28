@@ -10,7 +10,7 @@ class P {
     // and will run them as soon as our promise settles
     this._handlersQueue = [];
 
-    const resolve = (result) => {
+    const fulfill = (result) => {
       this._state = FULFILLED;
       this._value = result;
       this._handlersQueue.forEach(handlers => runOrQueueHandlers.apply(this, handlers));
@@ -20,6 +20,18 @@ class P {
       this._state = REJECTED;
       this._value = reason;
       this._handlersQueue.forEach(handlers => runOrQueueHandlers.apply(this, handlers));
+    }
+
+    const resolve = (result) => {
+      try {
+        var then = getThen(result);
+        if (then) {
+          return initiateResolution(then.bind(result), resolve, reject);
+        }
+        fulfill(result);
+      } catch (e) {
+        reject(e);
+      }
     }
 
     initiateResolution(resolverFn, resolve, reject);
